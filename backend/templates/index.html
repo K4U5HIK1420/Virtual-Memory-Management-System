@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Memory Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Virtual Memory Management System</h1>
+    <form id="simulationForm">
+        <!-- Number of Frames -->
+        <label for="frames">Number of Frames:</label>
+        <input type="number" id="frames" name="frames" required>
+        <br>
+
+        <!-- Page Requests -->
+        <label for="requests">Page Requests (comma-separated):</label>
+        <input type="text" id="requests" name="requests" required>
+        <br>
+
+        <!-- Algorithm Dropdown -->
+        <label for="algorithm">Algorithm:</label>
+        <select id="algorithm" name="algorithm" required>
+            <option value="FIFO">FIFO</option>
+            <option value="LRU">LRU</option>
+            <option value="OPTIMAL">Optimal</option>
+        </select>
+        <br>
+
+        <!-- Submit Button -->
+        <button type="submit">Run Simulation</button>
+    </form>
+
+    <!-- Result Display -->
+    <h2>Result:</h2>
+    <pre id="result"></pre>
+
+    <!-- JavaScript for Form Submission -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,34 +1,31 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import subprocess
 import os
+import traceback
 
-app = Flask(__name__, static_folder='../frontend/static')
+# Set up Flask app with frontend static folder
+app = Flask(__name__, static_folder='../frontend/static', static_url_path='')
 
 @app.route('/')
-def home():
-    # Debugging: Print the absolute path to the template
-    template_path = os.path.join(app.root_path, 'templates', 'index.html')
-    print(f"Looking for template at: {template_path}")
+def serve_frontend():
+    # Serve the static HTML file (not using render_template since this is not a Jinja2 template)
+    index_path = os.path.join(app.static_folder, 'index.html')
+    if not os.path.exists(index_path):
+        return f"Error: index.html not found at {index_path}", 500
+    return send_from_directory(app.static_folder, 'index.html')
 
-    # Check if the template file exists
-    if not os.path.exists(template_path):
-        return f"Error: Template not found at {template_path}", 500
-
-    return render_template("index.html")
 
 @app.route('/run', methods=['POST'])
 def run_simulation():
     try:
-        # Get JSON data from the request
         data = request.json
         frames = data.get('frames')
         requests = data.get('requests')
         algorithm = data.get('algorithm')
 
-        # Debugging: Print the received data
-        print(f"Received data: frames={frames}, requests={requests}, algorithm={algorithm}")
+        print(f"[DEBUG] Received: frames={frames}, requests={requests}, algorithm={algorithm}")
 
-        # Validate inputs
+        # Input validation
         if not frames or not requests or not algorithm:
             return jsonify({"error": "Missing required fields: frames, requests, or algorithm"}), 400
 
@@ -39,45 +36,34 @@ def run_simulation():
         except ValueError:
             return jsonify({"error": "Frames must be an integer"}), 400
 
-        # Validate requests (comma-separated integers)
         try:
-            request_sequence = " ".join(requests.split(','))
-            request_list = [int(x) for x in requests.split(',')]
+            request_list = [int(x.strip()) for x in requests.split(',')]
         except ValueError:
             return jsonify({"error": "Requests must be comma-separated integers"}), 400
 
-        # Validate algorithm
-        if algorithm not in ["FIFO", "LRU", "OPTIMAL"]:
-            return jsonify({"error": "Invalid algorithm. Choose from FIFO, LRU, or OPTIMAL"}), 400
+        if algorithm.upper() not in ["FIFO", "LRU", "OPTIMAL"]:
+            return jsonify({"error": "Invalid algorithm. Choose FIFO, LRU, or OPTIMAL"}), 400
 
-        # Debugging: Print the command to run the C program
-        command = ["./memory_simulator.exe", str(frames), str(len(request_list)), request_sequence, algorithm]
-        print(f"Running command: {' '.join(command)}")
+        request_sequence = " ".join(map(str, request_list))
 
-        # Run the C program
-        result = subprocess.run(
-            command,
-            capture_output=True, text=True
-        )
+        # Command to run the C executable
+        command = ["./memory_simulator.exe", str(frames), str(len(request_list)), request_sequence, algorithm.upper()]
+        print(f"[DEBUG] Running command: {' '.join(command)}")
 
-        # Debugging: Print the C program output
-        print(f"C program stdout: {result.stdout}")
-        print(f"C program stderr: {result.stderr}")
+        result = subprocess.run(command, capture_output=True, text=True)
 
-        # Check if the C program ran successfully
+        print(f"[DEBUG] stdout:\n{result.stdout}")
+        print(f"[DEBUG] stderr:\n{result.stderr}")
+
         if result.returncode != 0:
             return jsonify({"error": "Simulation failed", "details": result.stderr}), 500
 
-        # Return the output of the C program
         return jsonify({"result": result.stdout})
 
     except Exception as e:
-        # Debugging: Print the full traceback
-        import traceback
         traceback.print_exc()
-
-        # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

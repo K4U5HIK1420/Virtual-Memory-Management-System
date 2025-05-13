@@ -44,3 +44,92 @@ function getBotResponse(input) {
     };
     return responses[input] || "I'm here to help! Ask me about virtual memory management.";
 }
+document.getElementById("runSimulation").addEventListener("click", function () {
+    const frames = parseInt(document.getElementById("frames").value);
+    const pageRequests = document.getElementById("pageRequests").value.split(",").map(num => parseInt(num.trim()));
+    const algorithm = document.getElementById("algorithm").value;
+    let pageFaults = 0;
+
+    if (isNaN(frames) || frames <= 0 || pageRequests.some(isNaN)) {
+        alert("Please enter valid inputs.");
+        return;
+    }
+
+    if (algorithm === "fifo") {
+        pageFaults = simulateFIFO(pageRequests, frames);
+    } else if (algorithm === "lru") {
+        pageFaults = simulateLRU(pageRequests, frames);
+    } else if (algorithm === "optimal") {
+        pageFaults = simulateOptimal(pageRequests, frames);
+    }
+
+    document.getElementById("result").innerText = `Page faults: ${pageFaults}`;
+});
+
+// FIFO Algorithm
+function simulateFIFO(pages, frameCount) {
+    let frames = [];
+    let pageFaults = 0;
+
+    for (let page of pages) {
+        if (!frames.includes(page)) {
+            pageFaults++;
+            if (frames.length === frameCount) {
+                frames.shift();
+            }
+            frames.push(page);
+        }
+    }
+
+    return pageFaults;
+}
+
+// LRU Algorithm
+function simulateLRU(pages, frameCount) {
+    let frames = [];
+    let recent = new Map();
+    let pageFaults = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+
+        if (!frames.includes(page)) {
+            pageFaults++;
+            if (frames.length === frameCount) {
+                let lruPage = [...recent.entries()].sort((a, b) => a[1] - b[1])[0][0];
+                frames.splice(frames.indexOf(lruPage), 1);
+                recent.delete(lruPage);
+            }
+            frames.push(page);
+        }
+        recent.set(page, i);
+    }
+
+    return pageFaults;
+}
+
+// Optimal Algorithm
+function simulateOptimal(pages, frameCount) {
+    let frames = [];
+    let pageFaults = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+
+        if (!frames.includes(page)) {
+            pageFaults++;
+            if (frames.length === frameCount) {
+                let futureIndices = frames.map(p => {
+                    let idx = pages.slice(i + 1).indexOf(p);
+                    return idx === -1 ? Infinity : idx;
+                });
+                let replaceIndex = futureIndices.indexOf(Math.max(...futureIndices));
+                frames[replaceIndex] = page;
+            } else {
+                frames.push(page);
+            }
+        }
+    }
+
+    return pageFaults;
+}

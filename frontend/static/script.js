@@ -61,7 +61,9 @@ document.getElementById("runSimulation").addEventListener("click", function () {
         pageFaults = simulateLRU(pageRequests, frames);
     } else if (algorithm === "optimal") {
         pageFaults = simulateOptimal(pageRequests, frames);
-    }
+    } else if (algorithm === "secondChance") {
+        pageFaults = secondChance(pageRequests, frames);
+    }    
 
     document.getElementById("result").innerText = `Page faults: ${pageFaults}`;
 });
@@ -133,3 +135,37 @@ function simulateOptimal(pages, frameCount) {
 
     return pageFaults;
 }
+
+function secondChance(pages, framesCount) {
+    let frames = Array(framesCount).fill(null);
+    let referenceBits = Array(framesCount).fill(0);
+    let pointer = 0;
+    let pageFaults = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        let page = pages[i];
+
+        if (frames.includes(page)) {
+            // Set reference bit to 1 if page is already in frame
+            let index = frames.indexOf(page);
+            referenceBits[index] = 1;
+        } else {
+            // Page fault
+            while (true) {
+                if (referenceBits[pointer] === 0) {
+                    frames[pointer] = page;
+                    referenceBits[pointer] = 1;
+                    pointer = (pointer + 1) % framesCount;
+                    break;
+                } else {
+                    referenceBits[pointer] = 0;
+                    pointer = (pointer + 1) % framesCount;
+                }
+            }
+            pageFaults++;
+        }
+    }
+
+    return pageFaults;
+}
+

@@ -41,13 +41,18 @@ def run_simulation():
         except ValueError:
             return jsonify({"error": "Requests must be comma-separated integers"}), 400
 
-        if algorithm.upper() not in ["FIFO", "LRU", "OPTIMAL"]:
-            return jsonify({"error": "Invalid algorithm. Choose FIFO, LRU, or OPTIMAL"}), 400
+        if algorithm.upper() not in ["FIFO", "LRU", "OPTIMAL", "SECOND_CHANCE"]:
+            return jsonify({"error": "Invalid algorithm. Choose FIFO, LRU, OPTIMAL, or SECOND_CHANCE"}), 400
+
 
         request_sequence = " ".join(map(str, request_list))
 
         # Command to run the C executable
-        command = ["./memory_simulator.exe", str(frames), str(len(request_list)), request_sequence, algorithm.upper()]
+        normalized_algorithm = algorithm.upper()
+        if normalized_algorithm == "SECOND_CHANCE":
+            normalized_algorithm = "second_chance"  # match C code string
+        command = ["./memory_simulator.exe", str(frames), str(len(request_list)), request_sequence, normalized_algorithm]
+
         print(f"[DEBUG] Running command: {' '.join(command)}")
 
         result = subprocess.run(command, capture_output=True, text=True)

@@ -4,6 +4,7 @@
 #include "fifo.h"
 #include "lru.h"
 #include "optimal.h"
+#include "second_chance.h"
 
 int main(int argc, char *argv[]) {
     if (argc < 5) {
@@ -16,28 +17,32 @@ int main(int argc, char *argv[]) {
     char *page_sequence = argv[3];
     char *algorithm = argv[4];
 
-    // Convert page_sequence string to an array of integers
     int pages[num_pages];
     char *token = strtok(page_sequence, " ");
     for (int i = 0; i < num_pages; i++) {
+        if (token == NULL) {
+            printf("Error: Not enough pages provided.\n");
+            return 1;
+        }
         pages[i] = atoi(token);
         token = strtok(NULL, " ");
     }
 
-    // Call the appropriate algorithm
     int page_faults = 0;
+
     if (strcmp(algorithm, "FIFO") == 0) {
         page_faults = fifo(frames, pages, num_pages);
     } else if (strcmp(algorithm, "LRU") == 0) {
         page_faults = lru(frames, pages, num_pages);
     } else if (strcmp(algorithm, "OPTIMAL") == 0) {
         page_faults = optimal(frames, pages, num_pages);
+    } else if (strcmp(algorithm, "second_chance") == 0) {
+        page_faults = second_chance(pages, num_pages, frames);
     } else {
         printf("Invalid algorithm\n");
         return 1;
     }
 
-    // Output the result
     printf("Page faults: %d\n", page_faults);
     return 0;
 }

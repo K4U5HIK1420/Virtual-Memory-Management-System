@@ -1,17 +1,46 @@
 :root {
     --transition-speed: 0.3s;
 }
+
 .theme-light {
     background-color: #f8f9fa;
     color: #212529;
 }
+
 .theme-dark {
     background-color: #121212;
     color: #ffffff;
 }
+
 .transition-mode {
     transition: all var(--transition-speed) ease-in-out;
 }
+
 .hidden {
     display: none;
+}
+
+.metric-card {
+    @apply p-4 border rounded-lg text-center;
+}
+
+.metric-card h3 {
+    @apply font-bold text-sm text-gray-600 mb-1;
+}
+
+.metric-value {
+    @apply text-2xl font-bold;
+}
+
+#chartContainer {
+    min-height: 300px;
+}
+
+/* Dark mode adjustments */
+.theme-dark .metric-card {
+    @apply bg-gray-800 border-gray-700;
+}
+
+.theme-dark .metric-card h3 {
+    @apply text-gray-400;
 }

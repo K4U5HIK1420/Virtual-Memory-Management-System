@@ -40,10 +40,14 @@ function getBotResponse(input) {
         "FIFO": "FIFO replaces the oldest page in memory first.",
         "LRU": "LRU replaces the least recently used page.",
         "Optimal": "Optimal replaces the page that won't be used for the longest time.",
+        "LFU": "LFU replaces the least frequently used page.",
+        "Second Chance": "Second Chance gives pages a second chance before replacing them.",
         "page fault": "A page fault occurs when a requested page is not in memory."
+
     };
     return responses[input] || "I'm here to help! Ask me about virtual memory management.";
 }
+
 document.getElementById("runSimulation").addEventListener("click", function () {
     const frames = parseInt(document.getElementById("frames").value);
     const pageRequests = document.getElementById("pageRequests").value.split(",").map(num => parseInt(num.trim()));
@@ -63,7 +67,9 @@ document.getElementById("runSimulation").addEventListener("click", function () {
         pageFaults = simulateOptimal(pageRequests, frames);
     } else if (algorithm === "secondChance") {
         pageFaults = secondChance(pageRequests, frames);
-    }    
+    } else if (algorithm === "lfu") {
+        pageFaults = simulateLFU(pageRequests, frames);
+    }
 
     document.getElementById("result").innerText = `Page faults: ${pageFaults}`;
 });
@@ -136,6 +142,7 @@ function simulateOptimal(pages, frameCount) {
     return pageFaults;
 }
 
+// Second Chance Algorithm
 function secondChance(pages, framesCount) {
     let frames = Array(framesCount).fill(null);
     let referenceBits = Array(framesCount).fill(0);
@@ -146,11 +153,9 @@ function secondChance(pages, framesCount) {
         let page = pages[i];
 
         if (frames.includes(page)) {
-            // Set reference bit to 1 if page is already in frame
             let index = frames.indexOf(page);
             referenceBits[index] = 1;
         } else {
-            // Page fault
             while (true) {
                 if (referenceBits[pointer] === 0) {
                     frames[pointer] = page;
@@ -169,3 +174,32 @@ function secondChance(pages, framesCount) {
     return pageFaults;
 }
 
+// LFU Algorithm
+function simulateLFU(pages, frameCount) {
+    let frames = [];
+    let frequency = new Map(); // Tracks frequency of each page
+    let pageFaults = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+
+        if (!frames.includes(page)) {
+            pageFaults++;
+            if (frames.length === frameCount) {
+                // Find the least frequently used page
+                let lfuPage = frames.reduce((a, b) => 
+                    frequency.get(a) < frequency.get(b) ? a : b
+                );
+                frames.splice(frames.indexOf(lfuPage), 1);
+                frequency.delete(lfuPage);
+            }
+            frames.push(page);
+            frequency.set(page, 1);
+        } else {
+            // Update frequency count
+            frequency.set(page, frequency.get(page) + 1);
+        }
+    }
+
+    return pageFaults;
+}

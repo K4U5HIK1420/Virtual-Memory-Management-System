@@ -8,7 +8,7 @@ CFLAGS = -Wall -Wextra -std=c99
 TARGET = memory_simulator
 
 # Source files
-SRCS = main.c fifo.c lru.c optimal.c
+SRCS = main.c fifo.c lru.c optimal.c second_chance.c lfu.c
 
 # Object files (automatically generated from source files)
 OBJS = $(SRCS:.c=.o)
@@ -26,4 +26,4 @@ $(TARGET): $(OBJS)
 
 # Clean up build files
 clean:
-	rm -f $(OBJS) $(TARGET)
+	del /Q $(OBJS) $(TARGET).exe

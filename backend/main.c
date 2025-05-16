@@ -5,6 +5,7 @@
 #include "lru.h"
 #include "optimal.h"
 #include "second_chance.h"
+#include "lfu.h"
 
 int main(int argc, char *argv[]) {
     if (argc < 5) {
@@ -38,6 +39,8 @@ int main(int argc, char *argv[]) {
         page_faults = optimal(frames, pages, num_pages);
     } else if (strcmp(algorithm, "second_chance") == 0) {
         page_faults = second_chance(pages, num_pages, frames);
+    } else if (strcmp(algorithm, "LFU") == 0) {
+    page_faults = lfu(frames, pages, num_pages);
     } else {
         printf("Invalid algorithm\n");
         return 1;

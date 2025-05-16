@@ -20,16 +20,24 @@
     display: none;
 }
 
+/* Replace @apply with standard CSS */
 .metric-card {
-    @apply p-4 border rounded-lg text-center;
+    padding: 1rem;
+    border: 1px solid;
+    border-radius: 0.5rem;
+    text-align: center;
 }
 
 .metric-card h3 {
-    @apply font-bold text-sm text-gray-600 mb-1;
+    font-weight: bold;
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
 }
 
 .metric-value {
-    @apply text-2xl font-bold;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
 #chartContainer {
@@ -38,9 +46,10 @@
 
 /* Dark mode adjustments */
 .theme-dark .metric-card {
-    @apply bg-gray-800 border-gray-700;
+    background-color: #1f2937;
+    border-color: #374151;
 }
 
 .theme-dark .metric-card h3 {
-    @apply text-gray-400;
+    color: #9ca3af;
 }

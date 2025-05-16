@@ -41,8 +41,8 @@ def run_simulation():
         except ValueError:
             return jsonify({"error": "Requests must be comma-separated integers"}), 400
 
-        if algorithm.upper() not in ["FIFO", "LRU", "OPTIMAL", "SECOND_CHANCE"]:
-            return jsonify({"error": "Invalid algorithm. Choose FIFO, LRU, OPTIMAL, or SECOND_CHANCE"}), 400
+        if algorithm.upper() not in ["FIFO", "LRU", "OPTIMAL", "SECOND_CHANCE", "LFU"]:
+            return jsonify({"error": "Invalid algorithm. Choose FIFO, LRU, LFU, OPTIMAL, or SECOND_CHANCE"}), 400
 
 
         request_sequence = " ".join(map(str, request_list))

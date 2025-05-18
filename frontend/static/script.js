@@ -107,8 +107,8 @@ function displayResults(results, totalPages) {
     document.getElementById("metric-faults").textContent = totalFaults;
     document.getElementById("metric-fault-rate").textContent = `${(totalFaults/(Object.keys(results).length*totalPages)*100).toFixed(1)}%`;
     document.getElementById("metric-tlb-hit").textContent = `${(totalHits/(totalHits+totalFaults)*100).toFixed(1)}%`;
-    document.getElementById("metric-memory").textContent = "100%"; // Simplified
-    document.getElementById("metric-swap").textContent = totalFaults * 2; // 2 I/O per fault
+    document.getElementById("metric-memory").textContent = "100%";
+    document.getElementById("metric-swap").textContent = totalFaults * 2;
     
     // Show results
     document.getElementById("simulationResults").classList.remove("hidden");
@@ -127,13 +127,30 @@ function renderChart(results) {
             datasets: [{
                 label: "Page Faults",
                 data: Object.values(results).map(r => r.pageFaults),
-                backgroundColor: "#3b82f6",
-                borderColor: "#2563eb",
+                backgroundColor: [
+                    "#3b82f6",
+                    "#ef4444",
+                    "#10b981",
+                    "#f59e0b",
+                    "#8b5cf6"
+                ],
+                borderColor: [
+                    "#2563eb",
+                    "#dc2626",
+                    "#059669",
+                    "#d97706",
+                    "#7c3aed"
+                ],
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
@@ -147,7 +164,9 @@ function renderChart(results) {
     });
 }
 
-// Algorithm Implementations (updated to return full metrics)
+// Algorithm Implementations
+
+// FIFO Algorithm
 function simulateFIFO(pages, frameCount) {
     let frames = [];
     let pageFaults = 0;
@@ -157,7 +176,6 @@ function simulateFIFO(pages, frameCount) {
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         
-        // Simulate TLB (50% hit rate)
         if (Math.random() > 0.5 && frames.includes(page)) {
             tlbHits++;
             continue;
@@ -183,9 +201,137 @@ function simulateFIFO(pages, frameCount) {
     };
 }
 
-// [Other algorithms (LRU, Optimal, Second Chance, LFU) similarly updated...]
+// LRU Algorithm
+function simulateLRU(pages, frameCount) {
+    let frames = [];
+    let recent = new Map();
+    let pageFaults = 0;
+    let tlbHits = 0;
+    let tlbMisses = 0;
 
-// LFU Algorithm with Metrics
+    for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        
+        if (Math.random() > 0.5 && frames.includes(page)) {
+            tlbHits++;
+            recent.set(page, i);
+            continue;
+        }
+        
+        tlbMisses++;
+        
+        if (!frames.includes(page)) {
+            pageFaults++;
+            if (frames.length === frameCount) {
+                let lruPage = [...recent.entries()].sort((a, b) => a[1] - b[1])[0][0];
+                frames.splice(frames.indexOf(lruPage), 1);
+                recent.delete(lruPage);
+            }
+            frames.push(page);
+        }
+        recent.set(page, i);
+    }
+
+    return {
+        pageFaults,
+        tlbHits,
+        tlbMisses,
+        memoryUtilization: 100,
+        swapIO: pageFaults * 2
+    };
+}
+
+// Optimal Algorithm
+function simulateOptimal(pages, frameCount) {
+    let frames = [];
+    let pageFaults = 0;
+    let tlbHits = 0;
+    let tlbMisses = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        
+        if (Math.random() > 0.5 && frames.includes(page)) {
+            tlbHits++;
+            continue;
+        }
+        
+        tlbMisses++;
+        
+        if (!frames.includes(page)) {
+            pageFaults++;
+            if (frames.length === frameCount) {
+                let futureIndices = frames.map(p => {
+                    let idx = pages.slice(i + 1).indexOf(p);
+                    return idx === -1 ? Infinity : idx;
+                });
+                let replaceIndex = futureIndices.indexOf(Math.max(...futureIndices));
+                frames[replaceIndex] = page;
+            } else {
+                frames.push(page);
+            }
+        }
+    }
+
+    return {
+        pageFaults,
+        tlbHits,
+        tlbMisses,
+        memoryUtilization: 100,
+        swapIO: pageFaults * 2
+    };
+}
+
+// Second Chance Algorithm
+function secondChance(pages, framesCount) {
+    let frames = Array(framesCount).fill(null);
+    let referenceBits = Array(framesCount).fill(0);
+    let pointer = 0;
+    let pageFaults = 0;
+    let tlbHits = 0;
+    let tlbMisses = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        let page = pages[i];
+        
+        if (Math.random() > 0.5 && frames.includes(page)) {
+            tlbHits++;
+            let index = frames.indexOf(page);
+            referenceBits[index] = 1;
+            continue;
+        }
+        
+        tlbMisses++;
+        
+        if (frames.includes(page)) {
+            let index = frames.indexOf(page);
+            referenceBits[index] = 1;
+        } else {
+            while (true) {
+                if (referenceBits[pointer] === 0) {
+                    frames[pointer] = page;
+                    referenceBits[pointer] = 1;
+                    pointer = (pointer + 1) % framesCount;
+                    break;
+                } else {
+                    referenceBits[pointer] = 0;
+                    pointer = (pointer + 1) % framesCount;
+                }
+            }
+            pageFaults++;
+        }
+    }
+
+    return {
+        pageFaults,
+        tlbHits,
+        tlbMisses,
+        memoryUtilization: 100,
+        swapIO: pageFaults * 2
+    };
+}
+
+// LFU Algorithm
 function simulateLFU(pages, frameCount) {
     let frames = [];
     let frequency = new Map();
@@ -196,7 +342,6 @@ function simulateLFU(pages, frameCount) {
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         
-        // TLB simulation
         if (Math.random() > 0.5 && frames.includes(page)) {
             tlbHits++;
             frequency.set(page, (frequency.get(page) || 0) + 1);

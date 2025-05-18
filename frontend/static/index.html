@@ -24,10 +24,10 @@
         
         <div class="bg-white p-10 rounded-xl shadow-2xl border text-gray-800">
             <label class="block font-semibold text-lg">Number of Frames:</label>
-            <input type="number" id="frames" class="w-full p-3 border rounded-lg mt-2 focus:ring-2 transition-mode" min="1" value="3">
+            <input type="number" id="frames" class="w-full p-3 border rounded-lg mt-2 focus:ring-2 transition-mode" min="1" placeholder="Enter number of frames (e.g., 3)">
             
             <label class="block font-semibold text-lg mt-4">Page Requests (comma-separated):</label>
-            <input type="text" id="pageRequests" class="w-full p-3 border rounded-lg mt-2 focus:ring-2 transition-mode" value="1,2,3,4,1,2,5,1,2,3,4,5">
+            <input type="text" id="pageRequests" class="w-full p-3 border rounded-lg mt-2 focus:ring-2 transition-mode" placeholder="Enter page sequence (e.g., 1,2,3,4,1,2,5)">
             
             <button id="runSimulation" class="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl shadow-lg hover:bg-blue-700 transition-mode text-lg font-bold">
                 <i class="fas fa-play"></i> Compare All Algorithms
@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Chatbot (unchanged) -->
+    <!-- Chatbot -->
     <div id="chatbot" class="fixed bottom-5 right-5">
         <button id="chatbotToggle" class="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-mode">
             <i class="fas fa-robot text-2xl"></i>
